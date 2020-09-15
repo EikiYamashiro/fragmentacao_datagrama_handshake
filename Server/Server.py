@@ -18,29 +18,33 @@ def main():
         print("Server disponível")
         com2.rx.getIsEmpty()
         while True:
-            #---------------------GET--HEAD-------------------------
+            #----------------------GET--HEAD--------------------------
             head, nRx = com2.getData(10)
             print("Recebendo HEAD do Client...")
             sizePayload = head[5]
             sizeMensagem = head[3]
             numeroPacote = head[1]
+            print("sizeMensagem: {}".format(sizeMensagem))
+            print("numeroPacote: {}".format(numeroPacote))
+            print("sizePayload: {}".format(sizePayload))
             print("---------------------------------")
             
             #---------------------GET--PAYLOAD-------------------------
-            head, nRx = com2.getData(sizePayload)
+            payload, nRx = com2.getData(sizePayload)
+            print("payload {0} e {1}".format(nRx, sizePayload))
             print("Recebendo PAYLOAD do Client...")
             print("---------------------------------")
             
-            #---------------------GET--EOP-------------------------
-            head, nRx = com2.getData(4)
+            #-----------------------GET--EOP---------------------------
+            eop, nRx = com2.getData(4)
             print("Recebendo EOP do Client...")
             print("---------------------------------")
             time.sleep(0.5)
-            
-            print("sizeMensagem: {}".format(sizeMensagem))
-            print("numeroPacote: {}".format(numeroPacote))
-            print("---------------------------------")
             print(" ")
+            print(" ")
+            
+            if eop != b'\x00\x00\x00\x17':
+                break
             if sizeMensagem == numeroPacote:
                 break
             

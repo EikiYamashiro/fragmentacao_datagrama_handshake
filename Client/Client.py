@@ -25,7 +25,7 @@ def create_head(contador, sizeMensagem, sizePayload, msgType):
     #Numero total de pacotes
     #Tamanho do payload 
     #Tipo de mensagem 
-    head = contador + sizeMensagem + sizePayload + msgType + zero_b
+    head = contador + sizeMensagem + sizePayload + msgType
     return head
     
 
@@ -42,7 +42,6 @@ def create_datagram_list(mensagem):
     while c_total < len(mensagem)-1:
         
         if len(mensagem)-contador < 114:
-            print("-----------ULTIMO------------")
             payload = mensagem[contador:]
             head = create_head(ID.to_bytes(2, 'big'), sizeMensagem, len(payload).to_bytes(2, byteorder='big'), mt_handshake)
             datagrama = head + payload + eop
@@ -50,14 +49,11 @@ def create_datagram_list(mensagem):
             ID += 1
             break
         else:
-            print("-------------ENTROU--LEN114-----------")
             payload = mensagem[0+contador:114+contador]
-            print("Criando head")
             head = create_head(ID.to_bytes(2, 'big'), sizeMensagem, len(payload).to_bytes(2, byteorder='big'), mt_handshake)
             datagrama = head + payload + eop
             contador += 114
             ID += 1
-        print("Adiciona datagrama na lista")
         #Adiciona o datagrama na lista de datagramas
         dg_list.append(datagrama)
         
@@ -105,8 +101,6 @@ def main():
             head = datagrama[:10]
             payload = datagrama[10:-4]
             eop = datagrama[-4:]
-            print(len(eop))
-            
             #---------------------SEND--HEAD-------------------------
             com1.sendData(head)
             time.sleep(0.5)
@@ -115,7 +109,7 @@ def main():
             time.sleep(0.5)
             #---------------------SEND--EOP--------------------------
             com1.sendData(eop)
-            time.sleep(0.5)
+            time.sleep(1)
         
         print("Saiu do for!")
         
