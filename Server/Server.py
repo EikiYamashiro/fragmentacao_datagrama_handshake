@@ -10,14 +10,25 @@ import time
 import datagrama
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-
+h = 10
+e = 2304
+eop = e.to_bytes(4, 'big')
 def main():
     try:
         com2 = enlace('COM2')
         com2.enable() 
         print("Server disponível")
         com2.rx.getIsEmpty()
+        gets = True
+        
+        #----------------------GET--HANDSAHKE-------------------------
+        handshake_recebido, nRx = com2.getData(14)
+        print("-------------------------------------")
+        print("HANDSHAKE!!!")
+        print("-------------------------------------")
+        com2.sendData(handshake_recebido)
         while True:
+            print("entrou")
             #----------------------GET--HEAD--------------------------
             head, nRx = com2.getData(10)
             print("Recebendo HEAD do Client...")
@@ -43,7 +54,7 @@ def main():
             print(" ")
             print(" ")
             
-            if eop != b'\x00\x00\x00\x17':
+            if eop != b'\x00\x00\t\x00':
                 break
             if sizeMensagem == numeroPacote:
                 break
