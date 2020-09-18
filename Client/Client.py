@@ -24,6 +24,12 @@ zero_b = z.to_bytes(3, 'big')
 mt_handshake = h.to_bytes(4, 'big')
 mt_message = m.to_bytes(4, 'big')
 eop = e.to_bytes(4, 'big')
+a = (29).to_bytes(2, 'big')
+b = (29).to_bytes(2, 'big')
+c = (29).to_bytes(2, 'big')
+d = (29).to_bytes(2, 'big')
+e = (29).to_bytes(2, 'big')
+head_fake = a + d + c + d + e
 
 def create_handshake():
     head = create_head((0).to_bytes(2, 'big'), (0).to_bytes(2, 'big'), (0).to_bytes(2, byteorder='big'), mt_handshake)
@@ -59,7 +65,12 @@ def create_datagram_list(mensagem):
             break
         else:
             payload = mensagem[0+contador:114+contador]
-            head = create_head(ID.to_bytes(2, 'big'), sizeMensagem, len(payload).to_bytes(2, byteorder='big'), mt_message)
+            if ID == 4:
+                print("Entrou no fake")
+                head = create_head(ID.to_bytes(2, 'big'), sizeMensagem, (30).to_bytes(2, byteorder='big'), mt_message)
+            else:
+                head = create_head(ID.to_bytes(2, 'big'), sizeMensagem, len(payload).to_bytes(2, byteorder='big'), mt_message)
+            
             datagrama = head + payload + eop
             contador += 114
             ID += 1
@@ -80,28 +91,28 @@ def create_datagram_list(mensagem):
 
 def main():
     try:
-        #Enlace com COM1
-        com1 = enlace('COM1') 
-        com1.enable()
         
         #Abre a interface para o usuário selecionar a imagem
-        #print('Escolha uma imagem:')
-        #Tk().withdraw()
-        #image_selected = askopenfilename(filetypes=[("Image files", ".png .jpg .jpeg")])
-        #print("Imagem selecionada: {}".format(image_selected))
-        imageR = "C:/Users/eikis/OneDrive/Área de Trabalho/Insper/ClientServer/Client/sophia.png"
+        print('Escolha uma imagem:')
+        Tk().withdraw()
+        image_selected = askopenfilename(filetypes=[("Image files", ".png .jpg .jpeg")])
+        print("Imagem selecionada: {}".format(image_selected))
         handshake = create_handshake()
-        
         print("ENVIANDO HANDSHAKE")
-        com1.sendData(handshake)
+        
         t = True
+        
         while t==True:
-            
+            com1 = enlace('COM1') 
+            com1.enable()
+            com1.sendData(handshake)
             time.sleep(5)
             if com1.rx.getIsEmpty():
                 resp = input("Servidor inativo. Tentar novamente? S/N")
                 if resp == "N":
                     s
+                elif resp=="S":
+                    com1.disable()
             else:
                 t = False
                 print("HANDSHAKE RECEBIDO")
@@ -110,7 +121,7 @@ def main():
         #Carrega imagem para transmissão
         print("Carregando imagem para transmissao...")
         print("-----------------------------------")
-        txBufferClient = open(imageR, 'rb').read()
+        txBufferClient = open(image_selected, 'rb').read()
         size_real = len(txBufferClient)
         txSizeClient = len(txBufferClient).to_bytes(4, byteorder='big')
         print("Criando datagramas...")
@@ -118,6 +129,7 @@ def main():
         datagrama_list = create_datagram_list(txBufferClient)
         
         print("Lista de datagramas criada com sucesso!")
+        
         for datagrama in datagrama_list:
             head = datagrama[:10]
             payload = datagrama[10:-4]
@@ -131,7 +143,9 @@ def main():
             #---------------------SEND--EOP--------------------------
             com1.sendData(eop)
             time.sleep(0.5)
-        
+            
+                
+    
         print("Saiu do for!")
         
         # Encerra comunicação
